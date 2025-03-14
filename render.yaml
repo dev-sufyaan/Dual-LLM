@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dual-llm
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && gunicorn main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9
+      - key: GEMINI_API_KEY
+        sync: false 
