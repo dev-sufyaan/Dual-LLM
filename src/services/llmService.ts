@@ -10,13 +10,13 @@ export const defaultModels: LLMModel[] = [
     id: 'llm1',
     name: 'Gemini 2.0 Pro Experimental',
     description: 'First-pass model for generating responses',
-    endpoint: `${API_URL}/api/llm1`,
+    endpoint: `${API_URL}/llm1`,
   },
   {
     id: 'llm2',
     name: 'Gemini 2.0 Flash Thinking Experimental',
     description: 'Model for refining and improving responses',
-    endpoint: `${API_URL}/api/llm2`,
+    endpoint: `${API_URL}/llm2`,
   },
 ];
 
@@ -25,7 +25,7 @@ export const defaultModels: LLMModel[] = [
  */
 export const checkApiKeyStatus = async (): Promise<{ is_set: boolean; message: string }> => {
   try {
-    const response = await axios.get(`${API_URL}/api/api-key-status`);
+    const response = await axios.get(`${API_URL}/api-key-status`);
     return response.data;
   } catch (error) {
     console.error('Error checking API key status:', error);
@@ -41,7 +41,7 @@ export const checkApiKeyStatus = async (): Promise<{ is_set: boolean; message: s
  */
 export const setApiKey = async (apiKey: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await axios.post(`${API_URL}/api/set-api-key`, { api_key: apiKey });
+    const response = await axios.post(`${API_URL}/set-api-key`, { api_key: apiKey });
     return response.data;
   } catch (error) {
     console.error('Error setting API key:', error);
