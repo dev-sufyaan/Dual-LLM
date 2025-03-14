@@ -2,7 +2,8 @@ import axios from 'axios';
 import { LLMResponse, LLMModel } from '../types';
 
 // Backend API URL - use environment variable or fallback to localhost
-const API_URL = (import.meta.env?.VITE_API_URL as string)?.replace(/\/$/, '') || 'http://localhost:8000';
+// Ensure we remove any trailing slash to avoid double slashes in paths
+const API_URL = (import.meta.env?.VITE_API_URL as string)?.replace(/\/+$/, '') || 'http://localhost:8000';
 
 // Default models - these should match the backend configuration
 export const defaultModels: LLMModel[] = [
@@ -25,6 +26,7 @@ export const defaultModels: LLMModel[] = [
  */
 export const checkApiKeyStatus = async (): Promise<{ is_set: boolean; message: string }> => {
   try {
+    console.log(`Checking API key status at: ${API_URL}/api/api-key-status`);
     const response = await axios.get(`${API_URL}/api/api-key-status`);
     return response.data;
   } catch (error) {
@@ -41,6 +43,7 @@ export const checkApiKeyStatus = async (): Promise<{ is_set: boolean; message: s
  */
 export const setApiKey = async (apiKey: string): Promise<{ success: boolean; message: string }> => {
   try {
+    console.log(`Setting API key at: ${API_URL}/api/set-api-key`);
     const response = await axios.post(`${API_URL}/api/set-api-key`, { api_key: apiKey });
     return response.data;
   } catch (error) {

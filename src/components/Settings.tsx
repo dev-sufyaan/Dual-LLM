@@ -11,6 +11,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     // Check API key status when component mounts
@@ -31,22 +33,22 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage('');
-
+    
     try {
-      const response = await axios.post('http://localhost:8000/api/set-api-key', {
-        api_key: apiKey
-      });
-
-      if (response.data.success) {
-        setMessage('API key set successfully!');
+      console.log('Attempting to save API key...');
+      const result = await setApiKey(apiKey);
+      console.log('API key save result:', result);
+      
+      if (result.success) {
+        setMessage('API key saved successfully!');
         setMessageType('success');
-        setApiKey(''); // Clear the input for security
+        onClose();
       } else {
-        setMessage(response.data.message);
+        setMessage(result.message || 'Failed to set API key');
         setMessageType('error');
       }
     } catch (error) {
+      console.error('Error saving API key:', error);
       setMessage('Failed to set API key');
       setMessageType('error');
     } finally {
