@@ -2,7 +2,7 @@ import axios from 'axios';
 import { LLMResponse, LLMModel } from '../types';
 
 // Backend API URL - use environment variable or fallback to localhost
-const API_URL = (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8000/api';
+const API_URL = (import.meta.env?.VITE_API_URL as string)?.replace(/\/$/, '') || 'http://localhost:8000/api';
 
 // Default models - these should match the backend configuration
 export const defaultModels: LLMModel[] = [

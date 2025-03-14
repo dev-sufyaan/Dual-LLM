@@ -74,18 +74,13 @@ Be specific in your explanations and provide the full corrected code with clear 
 # Create FastAPI app
 app = FastAPI(title="Dual LLM Chat API")
 
-# Add CORS middleware to allow requests from the frontend
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://dual-llm-chat.vercel.app",  # Your Vercel frontend URL
-        "https://dual-llm.vercel.app",       # Alternative Vercel URL
-        "http://localhost:3000",             # Local development
-        "*"                                  # For development only, remove in production
-    ],
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Define request and response models
