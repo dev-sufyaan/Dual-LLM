@@ -21,6 +21,38 @@ export const defaultModels: LLMModel[] = [
 ];
 
 /**
+ * Check if the API key is set and valid
+ */
+export const checkApiKeyStatus = async (): Promise<{ is_set: boolean; message: string }> => {
+  try {
+    const response = await axios.get(`${API_URL}/api-key-status`);
+    return response.data;
+  } catch (error) {
+    console.error('Error checking API key status:', error);
+    return {
+      is_set: false,
+      message: 'Failed to check API key status',
+    };
+  }
+};
+
+/**
+ * Set the API key
+ */
+export const setApiKey = async (apiKey: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axios.post(`${API_URL}/set-api-key`, { api_key: apiKey });
+    return response.data;
+  } catch (error) {
+    console.error('Error setting API key:', error);
+    return {
+      success: false,
+      message: 'Failed to set API key',
+    };
+  }
+};
+
+/**
  * Send a prompt to an LLM model and get a response
  */
 export const sendPromptToLLM = async (
@@ -31,6 +63,16 @@ export const sendPromptToLLM = async (
   useCodeRefinement?: boolean
 ): Promise<LLMResponse> => {
   try {
+    // Check API key status first
+    const apiKeyStatus = await checkApiKeyStatus();
+    if (!apiKeyStatus.is_set) {
+      return getFallbackResponse(
+        modelId,
+        prompt,
+        'API key is not set. Please set your Google API key in settings.'
+      );
+    }
+
     // Find the model endpoint
     const model = defaultModels.find((m) => m.id === modelId);
     if (!model) {
@@ -69,6 +111,13 @@ export const sendPromptToLLM = async (
     
     // Handle different types of errors
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        return getFallbackResponse(
+          modelId,
+          prompt,
+          'API key is not set or is invalid. Please check your settings.'
+        );
+      }
       if (error.code === 'ECONNREFUSED') {
         return getFallbackResponse(
           modelId, 

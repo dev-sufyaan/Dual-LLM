@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Get API key from environment variable or use the provided one
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyC1CyJCexxyKdOfg31mg_yqU-k1N07hjBY")
+# API key storage - will be set via API endpoint
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Define the models
 MODELS = {
@@ -104,6 +104,14 @@ class ChatResponse(BaseModel):
     model: str
     usage: Optional[TokenUsage] = None
 
+# API Key management models
+class ApiKeyRequest(BaseModel):
+    api_key: str
+
+class ApiKeyResponse(BaseModel):
+    success: bool
+    message: str
+
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -117,6 +125,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Helper function to call Gemini API
 async def call_gemini(model_id: str, messages: List[Dict[str, str]]):
+    # Check if API key is set
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=401, 
+            detail="API key is not set. Please set your Google API key in settings."
+        )
+        
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={GEMINI_API_KEY}"
     
     # Format messages for Gemini API
@@ -184,6 +199,37 @@ async def read_root():
 @app.get("/api/models")
 async def get_models():
     return MODELS
+
+# API Key management endpoints
+@app.post("/api/set-api-key", response_model=ApiKeyResponse)
+async def set_api_key(request: ApiKeyRequest):
+    global GEMINI_API_KEY
+    try:
+        # Set the API key
+        GEMINI_API_KEY = request.api_key
+        
+        # Test the API key with a simple request
+        test_messages = [{"role": "user", "content": "Hello, this is a test message."}]
+        await call_gemini(MODELS["llm1"]["id"], test_messages)
+        
+        return ApiKeyResponse(
+            success=True,
+            message="API key set successfully and verified."
+        )
+    except Exception as e:
+        # Reset the API key if it's invalid
+        GEMINI_API_KEY = ""
+        return ApiKeyResponse(
+            success=False,
+            message=f"Failed to set API key: {str(e)}"
+        )
+
+@app.get("/api/api-key-status")
+async def get_api_key_status():
+    return {
+        "is_set": bool(GEMINI_API_KEY),
+        "message": "API key is set and ready to use." if GEMINI_API_KEY else "API key is not set. Please set your Google API key in settings."
+    }
 
 @app.post("/api/llm1", response_model=ChatResponse)
 async def query_llm1(request: ChatRequest):

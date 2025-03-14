@@ -87,28 +87,28 @@
 
 /* Code block styles */
 .message pre {
-  @apply my-4 rounded-lg overflow-hidden !bg-[#1E1E1E] dark:!bg-gray-900 border border-gray-700 dark:border-gray-600;
+  @apply my-2 rounded-md overflow-hidden !bg-[#1E1E1E] dark:!bg-gray-900 border border-gray-700/50 dark:border-gray-600/50;
 }
 
 .message .syntax-highlighter {
-  @apply !bg-[#1E1E1E] dark:!bg-gray-900 !p-4 !m-0;
+  @apply !bg-[#1E1E1E] dark:!bg-gray-900 !p-2 !m-0;
 }
 
 .message code {
-  @apply font-mono text-[0.95em] leading-relaxed;
+  @apply font-mono text-[0.9em] leading-normal;
 }
 
 .message :not(pre) > code {
-  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md px-1.5 py-0.5 font-medium;
+  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-1 py-0.5 font-medium;
 }
 
 /* Copy button styles */
 .code-block-header {
-  @apply flex items-center justify-between px-4 py-2 bg-gray-800 dark:bg-gray-700 text-gray-200 text-sm font-medium border-b border-gray-700;
+  @apply flex items-center justify-between px-2 py-1 bg-gray-800 dark:bg-gray-700 text-gray-200 text-xs font-medium border-b border-gray-700/50;
 }
 
 .copy-button {
-  @apply absolute top-2 right-2 px-2 py-1 text-xs font-medium text-gray-200 bg-gray-700/50 hover:bg-gray-600/50 rounded transition-colors;
+  @apply absolute top-1.5 right-1.5 px-1.5 py-0.5 text-xs font-medium text-gray-200 bg-gray-700/50 hover:bg-gray-600/50 rounded transition-colors;
 }
 
 /* LaTeX styles */
@@ -192,5 +192,5 @@
 
 /* Code block language badge */
 .code-language-badge {
-  @apply absolute top-2 left-2 px-2 py-0.5 text-xs font-medium text-gray-200 bg-gray-700/50 rounded;
+  @apply absolute top-1.5 left-1.5 px-1.5 py-0.5 text-xs font-medium text-gray-200 bg-gray-700/50 rounded;
 } 
