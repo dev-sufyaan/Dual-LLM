@@ -67,7 +67,10 @@ export const sendPromptToLLM = async (
 ): Promise<LLMResponse> => {
   try {
     // Check API key status first
+    console.log(`Checking API key status for model ${modelId}`);
     const apiKeyStatus = await checkApiKeyStatus();
+    console.log('API key status:', apiKeyStatus);
+    
     if (!apiKeyStatus.is_set) {
       return getFallbackResponse(
         modelId,
@@ -81,6 +84,14 @@ export const sendPromptToLLM = async (
     if (!model) {
       throw new Error(`Model with ID ${modelId} not found`);
     }
+    
+    console.log(`Sending request to ${model.endpoint}`);
+    console.log('Request payload:', {
+      prompt,
+      messages: previousMessages,
+      additional_input: additionalInput,
+      use_code_refinement: useCodeRefinement
+    });
 
     // Set timeout for the request
     const timeoutMs = 60000; // 60 seconds
@@ -102,6 +113,8 @@ export const sendPromptToLLM = async (
       }
     );
 
+    console.log('Response received:', response.data);
+
     // Validate response
     if (!response.data || !response.data.content) {
       console.error('Invalid response format:', response.data);
@@ -114,11 +127,36 @@ export const sendPromptToLLM = async (
     
     // Handle different types of errors
     if (axios.isAxiosError(error)) {
+      console.log('Axios error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       if (error.response?.status === 401) {
         return getFallbackResponse(
           modelId,
           prompt,
-          'API key is not set or is invalid. Please check your settings.'
+          'API key is not valid or has expired. Please update your API key in settings.'
+        );
+      }
+      if (error.response?.status === 500) {
+        let errorDetail = 'Unknown server error';
+        
+        // Try to extract more detailed error information
+        if (error.response?.data?.detail) {
+          errorDetail = error.response.data.detail;
+        } else if (typeof error.response?.data === 'string') {
+          errorDetail = error.response.data;
+        } else if (error.response?.data) {
+          errorDetail = JSON.stringify(error.response.data);
+        }
+        
+        return getFallbackResponse(
+          modelId,
+          prompt,
+          `Server error (500): ${errorDetail}. This might be due to an issue with the Google API key or the Gemini API service.`
         );
       }
       if (error.code === 'ECONNREFUSED') {
@@ -209,5 +247,75 @@ export const simulateLLMResponse = async (
       prompt,
       "API unavailable, using simulated response"
     );
+  }
+};
+
+/**
+ * Test the API key directly with the Gemini API
+ * This can help diagnose issues with the API key
+ */
+export const testApiKeyDirectly = async (apiKey: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    console.log('Testing API key directly with Gemini API...');
+    
+    // Simple test request to Gemini API
+    const modelId = 'gemini-2.0-pro-exp-02-05'; // Use the same model ID as in the backend
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+    
+    const payload = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Hello, can you respond with a simple 'Hello, I am working!' message?" }]
+        }
+      ]
+    };
+    
+    const response = await axios.post(url, payload, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    
+    console.log('Direct Gemini API test response:', response.data);
+    
+    if (response.status === 200 && response.data.candidates && response.data.candidates.length > 0) {
+      return {
+        success: true,
+        message: 'API key is valid and working with Gemini API'
+      };
+    } else {
+      return {
+        success: false,
+        message: 'API key seems valid but returned an unexpected response format'
+      };
+    }
+  } catch (error) {
+    console.error('Error testing API key directly:', error);
+    
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 400) {
+        return {
+          success: false,
+          message: 'API key is invalid or malformed'
+        };
+      } else if (error.response?.status === 403) {
+        return {
+          success: false,
+          message: 'API key is not authorized to access this model or has been disabled'
+        };
+      } else {
+        return {
+          success: false,
+          message: `API key test failed: ${error.response?.data?.error?.message || error.message}`
+        };
+      }
+    }
+    
+    return {
+      success: false,
+      message: `Failed to test API key: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
   }
 }; 

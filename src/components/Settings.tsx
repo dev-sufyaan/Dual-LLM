@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { setApiKey as saveApiKeyToBackend, checkApiKeyStatus as checkApiKeyStatusFromBackend } from '../services/llmService';
+import { 
+  setApiKey as saveApiKeyToBackend, 
+  checkApiKeyStatus as checkApiKeyStatusFromBackend,
+  testApiKeyDirectly
+} from '../services/llmService';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -33,6 +37,17 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     
     try {
+      console.log('Testing API key directly with Gemini API...');
+      const testResult = await testApiKeyDirectly(apiKey);
+      console.log('API key test result:', testResult);
+      
+      if (!testResult.success) {
+        setMessage(`API key test failed: ${testResult.message}`);
+        setMessageType('error');
+        setIsLoading(false);
+        return;
+      }
+      
       console.log('Attempting to save API key...');
       const result = await saveApiKeyToBackend(apiKey);
       console.log('API key save result:', result);
