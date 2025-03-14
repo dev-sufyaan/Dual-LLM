@@ -19,6 +19,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://dual-llm.onrender.com/api"
+    "VITE_API_URL": "https://dual-llm.onrender.com"
   }
 } 
