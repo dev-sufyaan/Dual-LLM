@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { setApiKey as saveApiKeyToBackend, checkApiKeyStatus as checkApiKeyStatusFromBackend } from '../services/llmService';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -11,8 +11,6 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     // Check API key status when component mounts
@@ -21,9 +19,9 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
   const checkApiKeyStatus = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/api-key-status');
-      setMessage(response.data.message);
-      setMessageType(response.data.is_set ? 'success' : 'error');
+      const result = await checkApiKeyStatusFromBackend();
+      setMessage(result.message);
+      setMessageType(result.is_set ? 'success' : 'error');
     } catch (error) {
       setMessage('Failed to check API key status');
       setMessageType('error');
@@ -36,7 +34,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     
     try {
       console.log('Attempting to save API key...');
-      const result = await setApiKey(apiKey);
+      const result = await saveApiKeyToBackend(apiKey);
       console.log('API key save result:', result);
       
       if (result.success) {
